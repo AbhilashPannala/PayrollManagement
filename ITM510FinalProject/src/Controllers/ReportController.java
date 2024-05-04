@@ -1,7 +1,5 @@
 package Controllers;
 
-import static Controllers.PayrollController.round;
-
 import java.net.URL;
 import java.util.ResourceBundle;
 import javafx.fxml.FXML;
@@ -14,81 +12,58 @@ import javafx.scene.layout.AnchorPane;
 
 public class ReportController implements Initializable {
 
-    private String id, name, gross, over_time;
+    private String employeeId, employeeName, grossSalary, overTimeHours;
     
     @FXML
-    private AnchorPane root;
+    private AnchorPane rootPane;
     
     @FXML
-    private Button btnPrint;
+    private Button printButton;
     
     @FXML
-    private Label tx_name, tx_id, tx_gross, tx_basic, tx_house_rent, tx_medical, tx_per_day, tx_per_hour, tx_over_time, tx_over_time_pay, tx_payable;
+    private Label nameField, idField, grossSalaryField, basicSalaryField, houseRentField, medicalField, perDayField, perHourField, overTimeField, overTimePayField, payableField;
     
-    public ReportController(String id, String name, String gross, String over_time) {
-        this.id = id;
-        this.name = name;
-        this.gross = gross;
-        this.over_time = over_time;
+    public ReportController(String employeeId, String employeeName, String grossSalary, String overTimeHours) {
+        this.employeeId = employeeId;
+        this.employeeName = employeeName;
+        this.grossSalary = grossSalary;
+        this.overTimeHours = overTimeHours;
     }
     
     public void calculateValues() {
+        idField.setText(employeeId);
+        nameField.setText(employeeName);
+        grossSalaryField.setText(grossSalary);
+        overTimeField.setText(overTimeHours);
         
-        tx_id.setText(id);
-        tx_name.setText(name);
-        tx_gross.setText(gross);
-        tx_over_time.setText(over_time);
+        double grossSalaryValue = parseDoubleValue(grossSalaryField.getText());
+        double overTimeHoursValue = parseDoubleValue(overTimeField.getText());
         
-        double gross, over_time;
+        double basicSalary = calculatePercentage(grossSalaryValue, 65);
+        double houseRent = calculatePercentage(grossSalaryValue, 25);
+        double medical = calculatePercentage(grossSalaryValue, 10);
+        double perDaySalary = basicSalary / 26;
+        double perHourSalary = perDaySalary / 8;
+        double overTimePay = overTimeHoursValue * perHourSalary * 2;
+        double payableAmount = basicSalary + overTimePay;
         
-        if(tx_gross.getText().equals("") || tx_gross.getText().equals("0") || Double.parseDouble(tx_gross.getText()) < 0){
-            gross = 0;
-        }else{
-            gross = Double.parseDouble(tx_gross.getText());
-        }
+        setLabelValue(basicSalaryField, basicSalary);
+        setLabelValue(houseRentField, houseRent);
+        setLabelValue(medicalField, medical);
+        setLabelValue(perDayField, perDaySalary);
+        setLabelValue(perHourField, perHourSalary);
+        setLabelValue(overTimePayField, overTimePay);
+        setLabelValue(payableField, payableAmount);
         
-        if(tx_over_time.getText().equals("") || Double.parseDouble(tx_over_time.getText()) < 0){
-            over_time = 0;
-        }else{
-            over_time = Double.parseDouble(tx_over_time.getText());
-        }
-        
-        double basic = (gross / 100) * 65; // Basic = 65% of Gross
-        basic = round(basic, 2);
-        tx_basic.setText(String.valueOf(basic) + " $");
-        
-        double house_rent = (gross / 100) * 25; // House Rent = 25% of Gross
-        house_rent = round(house_rent, 2);
-        tx_house_rent.setText(String.valueOf(house_rent) + " $");
-        
-        double medical = (gross / 100) * 10; // Medical = 10% of Gross
-        medical = round(medical, 2);
-        tx_medical.setText(String.valueOf(medical) + " $");
-        
-        double per_day = basic / 26; // Per Day = Basic / 26
-        per_day = round(per_day, 2);
-        tx_per_day.setText(String.valueOf(per_day) + " $");
-        
-        double per_hour = per_day / 8; // Per Hour = Per Day / 8
-        per_hour = round(per_hour, 2);
-        tx_per_hour.setText(String.valueOf(per_hour) + " $");
-        
-        double over_time_pay = over_time * per_hour * 2; // Over Time Pay = Over Time * Per Hour Pay * 2
-        over_time_pay = round(over_time_pay, 2);
-        tx_over_time_pay.setText(String.valueOf(over_time_pay) + " $");
-        
-        double payable = basic + over_time_pay; // Payable = Basic + Over Time Pay
-        payable = round(payable, 2);
-        tx_payable.setText(String.valueOf(payable) + " $");
-        
-        tx_gross.setText(gross + " $");
-        tx_over_time.setText(over_time + " Hour");
+        grossSalaryField.setText(grossSalaryValue + " $");
+        overTimeField.setText(overTimeHoursValue + " Hour");
     }
     
     @FXML
     private void onButtonPrint() {
-        btnPrint.setVisible(false);
-        print(root);
+        printButton.setVisible(false);
+        print(rootPane);
+        printButton.setVisible(true);
     }
          
     
@@ -100,7 +75,27 @@ public class ReportController implements Initializable {
                 job.endJob();
             }
         }
-        btnPrint.setVisible(true);
+    }
+    
+    private double parseDoubleValue(String value) {
+        try {
+            return Double.parseDouble(value);
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+    
+    private double calculatePercentage(double value, double percentage) {
+        return round((value / 100) * percentage, 2);
+    }
+    
+    private void setLabelValue(Label label, double value) {
+        label.setText(String.valueOf(value) + " $");
+    }
+    
+    private double round(double value, int places) {
+        double scale = Math.pow(10, places);
+        return Math.round(value * scale) / scale;
     }
     
     @Override
