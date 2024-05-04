@@ -293,7 +293,7 @@ public class PayrollController implements Initializable {
 			stage.setScene(scene);
 			stage.setResizable(false);
 			stage.show();
-			System.out.println("TRYING!");
+			System.out.println("Report generated!");
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
